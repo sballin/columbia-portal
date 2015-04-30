@@ -8,7 +8,7 @@ import io
 import pickle
 
 
-cascade = cv2.CascadeClassifier('classifiers/face.xml')
+cascade = cv2.CascadeClassifier('classifiers/opencv_frontalface.xml')
 
 
 def cascade_detect(cascade, image):
@@ -17,7 +17,7 @@ def cascade_detect(cascade, image):
         gray_image,
         scaleFactor = 1.15,
         minNeighbors = 5,
-        minSize = (120, 120),
+        minSize = (70, 70),
         flags = cv2.cv.CV_HAAR_SCALE_IMAGE
     )
  
@@ -31,6 +31,7 @@ def draw_bubbles(image):
         text = textwrap.fill(text, 25)
         print text
         cv2.putText(image, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,255,255))
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
         #cv2.ellipse(image, (x, y), (w, h), 0, 0, 180)#, ['black', 2]) 
     if len(detections) == 0:
         cv2.putText(image, 'No faces found', (20, 20), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,255,255))
@@ -60,12 +61,11 @@ image_size = (800, 600)
 #img = np.ones(img_size)*255
 
 pygame.init()
-screen = pygame.display.set_mode(image_size, pygame.FULLSCREEN)
-done = False
+screen = pygame.display.set_mode((0,0), pygame.FULLSCREEN)
 
 with picamera.PiCamera() as camera:
     try:
-        camera.resolution = (800, 600)
+        camera.resolution = image_size
         stream = io.BytesIO()
     
         for foo in camera.capture_continuous(stream, format='png'):
@@ -74,8 +74,9 @@ with picamera.PiCamera() as camera:
             stream.seek(0)
             image = cv2.imdecode(frame, 1)
             image = draw_bubbles(image)
-            surf = pygame.surfarray.make_surface(image)    # note: makes colors bluish
-            screen.blit(surf, (0,0))
+            image = pygame.image.load('../tests/test.jpg')
+            #surf = pygame.surfarray.make_surface(image)    # note: makes colors bluish
+            screen.blit(image, (0,0))
             pygame.display.flip()
 
     finally: camera.close()
